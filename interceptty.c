@@ -615,6 +615,8 @@ int main (int argc, char *argv[])
   sigact.sa_handler = sigdeath;
   sigact.sa_mask = sigmask;
 
+  printf("testing...\n");
+
   sigaction(SIGHUP,&sigact,NULL);
   sigaction(SIGINT,&sigact,NULL);
   sigaction(SIGQUIT,&sigact,NULL);
