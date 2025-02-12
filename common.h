@@ -13,3 +13,6 @@ char *leafname (char *path);
 void stty_initstore (void);
 int  stty_raw (int fd);
 void stty_orig (void);
+
+#define TRUE 1
+#define FALSE 0

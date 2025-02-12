@@ -63,7 +63,6 @@ int     created_link = 0;
 char    last_pty[TTYLEN] = "",
   last_tty[TTYLEN] = "";
 pid_t child_pid = 0;
-int please_die_now = 0;
 int listenfd = 0;
 
 mode_t frontend_mode = -1;
@@ -270,7 +269,7 @@ int main (int argc, char *argv[])
   printf("testing...\n");
 
 
-  while (!please_die_now)
+  while (TRUE)
   {
     do
     {
@@ -280,11 +279,9 @@ int main (int argc, char *argv[])
                         
       sel = select(fdmax + 1, &readset, NULL, NULL, NULL);
     }
-    while (sel == -1 && errno == EINTR && !please_die_now);
+    while (sel == -1 && errno == EINTR);
     if (sel == -1 && errno != EINTR)
       errorf ("select failed. errno = %d\n", errno);
-    else if (please_die_now)
-      break;
 
     if (FD_ISSET(backfd[0], &readset))
     {
@@ -296,14 +293,6 @@ int main (int argc, char *argv[])
 	 */
 	break;
       }
-      else if (n < 0)
-      {
-	if ( (errno != EAGAIN) && (errno != EINTR) )
-	{
-	  errorf("Error reading from backend device: %s\n",strerror(errno));
-	}
-	break;
-      }
       else
       {
 	/* We should handle this better.  FIX */
@@ -311,9 +300,6 @@ int main (int argc, char *argv[])
 	  errorf("Error writing to frontend device: %s\n",strerror(errno));
       }
     }
-
-    if (please_die_now)
-      break;
 
     if (FD_ISSET(frontfd[0], &readset))
     {
@@ -327,17 +313,6 @@ int main (int argc, char *argv[])
             errorf("Couldn't accept new socket connection: %s\n",strerror(errno));
         }
           
-      }
-      else if (n <= 0)
-      {
-	if ( (errno == EAGAIN) || (errno == EINTR) )
-	{
-	  /* No real error */
-	}
-	else
-	{
-	  errorf("Error reading from frontend device: %s\n",strerror(errno));
-	}
       }
       else
       {
