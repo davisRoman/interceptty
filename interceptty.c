@@ -653,25 +653,6 @@ int setup_front_unix_socket(char *sockname, int f[2])
   return f[0]=f[1]=accept(listenfd,NULL,NULL);
 }
 
-int setup_front_inet_socket(char *sockname, int f[2])
-{
-  struct sockaddr_in sa;
-  int reuse_flag = 1;
-  
-  sa = inet_resolve(sockname);
-  
-  if ((listenfd = socket(PF_INET, SOCK_STREAM, 0)) < 3)
-    errorf("Couldn't open socket: %s\n",strerror(errno));
-  if (setsockopt(listenfd,SOL_SOCKET, SO_REUSEADDR,&reuse_flag,sizeof(reuse_flag)) < 0)
-    errorf("Couldn't make socket reusable: %s\n",strerror(errno));
-  if (bind(listenfd, (struct sockaddr *)&sa, sizeof(sa)) < 0)
-    errorf("Couldn't bind to inet socket: %s\n",strerror(errno));
-  if (listen(listenfd,5) < 0)
-    errorf("Couldn't listen on unix socket: %s\n",strerror(errno));
-
-  return f[0]=f[1]=accept(listenfd,NULL,NULL);
-}
-
 int setup_frontend(int f[2])
 {
   if (frontend)
@@ -680,8 +661,6 @@ int setup_frontend(int f[2])
       case '@':
         if (strchr(frontend,'/')!=0)
           return setup_front_unix_socket(frontend+1,f);
-        else
-          return setup_front_inet_socket(frontend+1,f);
       case '=':
         return setup_back_fds(frontend+1,f);
     }
