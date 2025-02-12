@@ -343,21 +343,6 @@ int fstty(int fd, char *stty_args)
  * Set up backend device
  ************************************/
 
-int setup_back_inet_socket(char *backend, int f[2])
-{
-  struct sockaddr_in sa;
-  int fd;
-
-  sa = inet_resolve(backend);
-  if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 3)
-    errorf("Couldn't open socket: %s\n",strerror(errno));
-
-  if (connect(fd, (struct sockaddr *)&sa, sizeof(sa)) != 0)
-    errorf("Couldn't connect socket: %s\n", strerror(errno));
-
-  return f[0]=f[1]=fd;
-}
-
 int setup_back_unix_socket(char *sockname, int f[2])
 {
   int fd;
@@ -509,8 +494,6 @@ int setup_backend(int f[2])
     case '@':
       if (strchr(backend,'/')!=0)
         return setup_back_unix_socket(backend+1,f);
-      else
-        return setup_back_inet_socket(backend+1,f);
     case '!':
       return setup_back_program(backend+1,f);
     case '=':
