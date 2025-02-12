@@ -338,29 +338,6 @@ int fstty(int fd, char *stty_args)
         
 
         
-/*************************************
- * Set up backend device
- ************************************/
-
-int setup_back_unix_socket(char *sockname, int f[2])
-{
-  int fd;
-  struct sockaddr_un sa;
-  
-  if ((strlen(sockname)+1) > sizeof(sa.sun_path))
-    errorf("Path name is too long for a Unix socket.\n");
-  sa.sun_family = AF_UNIX;
-  strcpy(sa.sun_path,sockname);
-  
-  if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 3)
-    errorf("Couldn't open socket: %s\n",strerror(errno));
-  if (connect(fd, (struct sockaddr *)&sa, sizeof(sa)) != 0)
-    errorf("Couldn't connect socket: %s\n", strerror(errno));
-
-  return f[0]=f[1]=fd;
-}
-
-
 struct sockaddr_in inet_resolve(const char *sockname)
 {
   struct sockaddr_in sa;
@@ -490,9 +467,6 @@ int setup_back_fds(char *backend, int f[2])
 int setup_backend(int f[2])
 {
   switch(backend[0]) {
-    case '@':
-      if (strchr(backend,'/')!=0)
-        return setup_back_unix_socket(backend+1,f);
     case '!':
       return setup_back_program(backend+1,f);
     case '=':
