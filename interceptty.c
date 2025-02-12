@@ -59,7 +59,6 @@ char    *backend = NULL,
   *frontend = DEFAULT_FRONTEND,
   *settings = NULL,
   *outfilename = NULL,
-  *opt_ttyname = NULL;
   timestamp = 0,
   use_eol_ch = 0,
   print_hex = 1,
@@ -715,9 +714,6 @@ int main (int argc, char *argv[])
   /* Process options */
   while ((c = getopt(argc, argv, "VTlqvs:o:p:t:m:u:g:/:e:f:")) != EOF)
     switch (c) {
-      case 't':
-        opt_ttyname = optarg;
-        break;
       case 'm':
 	/* mode for pty: [user,[group,]]mode */
 	scratch = strdup(optarg);
