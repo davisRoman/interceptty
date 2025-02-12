@@ -738,57 +738,6 @@ int setup_frontend(int f[2])
 
 
 
-/* Let me pass in device name, settings, new tty to create,
- * output file, verbose mode.
- */
-
-void usage(char *name)
-{
-  fprintf(stderr,"Usage: %s [-V] [-qvl] [-s back-set] [-o output-file]\n"
-                "       %*s [-p pty-dev] [-t tty-dev]\n"
-                "       %*s [-m [pty-owner,[pty-group,]]pty-mode]\n"
-                "       %*s [-u uid] [-g gid] [-/ chroot-dir]\n"
-                "       %*s  back-device front-device\n"
-"\tback-device\tUse back-device as the device to intercept\n"
-           "\t\t/path\t\tTTY dev is at /path\n"
-           "\t\t@/path\t\tSocket is at /path\n"
-           "\t\t@host:port\tInet socket is at host:port\n"
-           "\t\t!prog\t\tRun prog for backend\n"
-           "\t\t=rfd[,wfd]\tUse file descriptors\n"
-
-"\tfront-device\tUse front-device as the device applications connect to\n"
-           "\t\t/path\t\tCreate symlink at /path\n"
-           "\t\t@/path\t\tSocket at /path\n"
-           "\t\t@host:port\tInet socket at host:port\n"
-           "\t\t=rfd[,wfd]\tUse file descriptors\n"
-
-"\t\t\t'-' to prevent creating a front-device.\n"
-"\t\t\tDoesn't currently do anything.\n"
-"\t-l\t\tLine-buffer output\n"
-"\t-o output-file\tWrite intercepted data to output-file\n"
-"\t-s back-stty\tUse given settings to set up back-device\n"
-"\t\t\tThese settings are passed directly to stty(1).\n"
-"\t-m pty-mode\tSpecify permissions for the new pty\n"
-"\t\t\tFormat is [pty-owner,[pty-group,]]pty-mode]\n"
-"\t-u uid\tSwitch to given uid after setting up (must be root)\n"
-"\t-g gid\tSwitch to given gid after setting up (must be root)\n"
-"-/ chroot-dir\tchroot(2) to given dir after setting up (must be root)\n"
-"\t-q\t\tActivate quiet mode\n"
-"\t-v\t\tActivate verbose mode\n"
-"\t-T\t\tPrint timestamps in format [HH:mm SS:usec]\n"
-"\t-e EOL\t\tFormat output line by line where EOL is end of line\n"
-"\t\t\t  EOL can be any char or a number from 0-255\n"
-"\t-f <hex|chars>\tChooses output in hex or chars, default is to print both\n"
-"\t-V\t\tPrint version number then exit\n"
-"\t-p pty-dev\tFull path to pty device for front-end (used internally)\n"
-"\t-t tty-dev\tFull path to tty device for front-end (used externally)\n"
-,name,
-(int)strlen(name),"",
-(int)strlen(name),"",
-(int)strlen(name),"",
-(int)strlen(name),"");
-}
-
 extern char *optarg;
 extern int optind;
 
@@ -904,7 +853,6 @@ int main (int argc, char *argv[])
     }
 
   if (errflg || ((argc-optind) < 1) || ((argc-optind) > 2)) {
-    usage(argv[0]);
     exit (2);
   }
 
