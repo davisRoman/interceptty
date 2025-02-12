@@ -2,8 +2,7 @@
  *
  * This file is an adaptation of ttysnoops.c, from the ttysnoop-0.12d
  * package It was originally written by Carl Declerck, Ulrich
- * Callmeir, Carl Declerck, and Josh Bailey.  They deserve all of the
- * credit for the clever parts.  I, on the other hand, deserve all of
+ * Callmeir, Carl Declerck, and Josh Bailey.  They deserve all of the * credit for the clever parts.  I, on the other hand, deserve all of
  * the blame for whatever I broke.  Please do not email the original
  * authors of ttysnoop about any problems with interceptty.
  *
@@ -553,43 +552,11 @@ int setup_front_tty(char *frontend, int f[2])
   return f[0]=f[1]=ptyfd;
 }
 
-int setup_front_unix_socket(char *sockname, int f[2])
-{
-  struct sockaddr_un sa;
-  int reuse_flag = 1;
-  
-  if ((strlen(sockname)+1) > sizeof(sa.sun_path))
-    errorf("Path name is too long for a Unix socket.\n");
-  sa.sun_family = AF_UNIX;
-  strcpy(sa.sun_path,sockname);
-  
-  if ((listenfd = socket(PF_UNIX, SOCK_STREAM, 0)) < 3)
-    errorf("Couldn't open socket: %s\n",strerror(errno));
-  if (setsockopt(listenfd,SOL_SOCKET, SO_REUSEADDR,&reuse_flag,sizeof(reuse_flag)) < 0)
-    errorf("Couldn't make socket reusable: %s\n",strerror(errno));
-
-  unlink(sockname); /* Just in case */
-
-  if (bind(listenfd, (struct sockaddr *)&sa, sizeof(sa)) < 0)
-    errorf("Couldn't bind to unix socket: %s\n",strerror(errno));
-  if (listen(listenfd,5) < 0)
-    errorf("Couldn't listen on unix socket: %s\n",strerror(errno));
-
-  /* Arrange to have the socket deleted */
-  frontend++;
-  created_link=1;
-  
-  return f[0]=f[1]=accept(listenfd,NULL,NULL);
-}
-
 int setup_frontend(int f[2])
 {
   if (frontend)
     switch (frontend[0])
     {
-      case '@':
-        if (strchr(frontend,'/')!=0)
-          return setup_front_unix_socket(frontend+1,f);
       case '=':
         return setup_back_fds(frontend+1,f);
     }
