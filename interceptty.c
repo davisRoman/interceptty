@@ -74,9 +74,6 @@ int listenfd = 0;
 mode_t frontend_mode = -1;
 uid_t frontend_owner = -1;
 gid_t frontend_group = -1;
-uid_t switch_uid = -1;
-gid_t switch_gid = -1;
-char *switch_root = NULL;
 
 int no_closedown = 0;
 
@@ -739,15 +736,6 @@ int main (int argc, char *argv[])
 	}
 	frontend_mode = strtol(scratch,NULL,8);
 	break;
-      case 'u':
-	switch_uid = find_uid(optarg);
-	break;
-      case 'g':
-	switch_gid = find_gid(optarg);
-	break;
-      case '/':
-        switch_root = strdup(optarg);
-	break;
       case 's':
         settings = optarg;
         break;
@@ -817,34 +805,6 @@ int main (int argc, char *argv[])
   /* Setup frontend */
   if ((setup_frontend(frontfd)) < 0)
     errorf("setup_frontend failed: %s\n",strerror(errno));
-
-  /* Drop privileges if we've been asked to */
-  if (switch_root)
-  {
-    if (chroot(switch_root) != 0)
-      errorf("chroot(%s) failed: %s\n",switch_root,strerror(errno));
-  }
-  if (switch_gid != -1)
-  {
-    if (setgroups(1,&switch_gid) == -1)
-      errorf("setgroups(1,[%d]) failed: %s\n",switch_gid, strerror(errno));
-    if (setregid(switch_gid, switch_gid) == -1)
-      errorf("setregid(%d,%d) failed: %s\n",switch_gid,switch_gid);
-    if (getgid() != switch_gid)
-      errorf("setregid succeeded, but we're the wrong gid!");
-    if (getegid() != switch_gid)
-      errorf("setregid succeeded, but we're the wrong effective gid!");
-  }
-  if (switch_uid != -1)
-  {
-    if (setreuid(switch_uid, switch_uid) == -1)
-      errorf("setreuid(%d,%d) failed: %s\n",switch_uid,switch_uid,strerror(errno));
-    if (getuid() != switch_uid)
-      errorf("setreuid succeeded, but we're the wrong uid!");
-    if (geteuid() != switch_uid)
-      errorf("setregid succeeded, but we're the wrong effective uid!");
-  }
-
   
   /* calc (initial) max file descriptor to use in select() */
   fdmax = max(backfd[0], frontfd[0]);
