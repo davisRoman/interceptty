@@ -63,7 +63,6 @@ char    *backend = NULL,
   *opt_ttyname = NULL;
 int     verbose = 0,
   linebuff = 0,
-  quiet = 0,
   timestamp = 0,
   use_eol_ch = 0,
   print_hex = 1,
@@ -757,9 +756,6 @@ int main (int argc, char *argv[])
   /* Process options */
   while ((c = getopt(argc, argv, "VTlqvs:o:p:t:m:u:g:/:e:f:")) != EOF)
     switch (c) {
-      case 'q':
-	quiet=1;
-	break;
       case 'v':
         verbose = 1;
         break;
@@ -948,8 +944,6 @@ int main (int argc, char *argv[])
 	 * a real serial port, but for sockets and programs, probably
 	 * we should just exit.
 	 */
-	if (!quiet)
-	  errorf("Backend device was closed.\n");
 	break;
       }
       else if (n < 0)
@@ -965,8 +959,6 @@ int main (int argc, char *argv[])
 	/* We should handle this better.  FIX */
         if (write (frontfd[1], buff, n) != n)
 	  errorf("Error writing to frontend device: %s\n",strerror(errno));
-        if (!quiet)
-	  dumpbuff(1,buff,n);
       }
     }
 
@@ -1001,8 +993,6 @@ int main (int argc, char *argv[])
       {
         if (write (backfd[1], buff, n) != n)
 	  errorf("Error writing to backend device: %s\n",strerror(errno));
-	if (!quiet)
-	  dumpbuff(0,buff,n);
       }
     }
 
