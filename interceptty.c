@@ -262,28 +262,6 @@ int setup_front_tty(char *frontend, int f[2])
   /* Open the parent tty */
   create_pty(&ptyfd, ttynam);
   
-  /* Now set permissions, owners, etc. */
-  if (geteuid() == 0)
-  {
-    if ((frontend_mode == -1) && !strchr("@!=",backend[0]))
-    {
-      if (stat(backend, &st) < 0)
-	errorf("Couldn't stat backend device '%s': %s\n",backend,strerror(errno));
-      frontend_mode = st.st_mode;
-      frontend_owner = st.st_uid;
-      frontend_group = st.st_gid;
-    }
-    if (frontend_mode != -1) {
-      /* Set up permissions on the pty slave */
-      if (stat(ttynam, &st) < 0)
-	errorf("Couldn't stat tty '%s': %s\n",ttynam,strerror(errno));
-
-      if (chown(ttynam, frontend_owner, frontend_group) < 0)
-	errorf("Couldn't chown backend device to uid=%d, gid=%d: %s\n",st.st_uid,st.st_gid,strerror(errno));
-      if (chmod(ttynam, frontend_mode & 07777) < 0)
-	errorf("Couldn't set permissions on tty '%s': %s\n",strerror(errno));
-    }
-  }
   /* Now make the symlink */
   if (frontend)
   { 
