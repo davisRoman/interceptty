@@ -400,50 +400,6 @@ int setup_back_tty(char *backend, int f[2])
   return f[0]=f[1]=serialfd;
 }
 
-int setup_back_program(char *backend, int f[2])
-{
-  int sock[2];
-
-  if (socketpair(PF_UNIX,SOCK_STREAM,0,sock) != 0)
-    errorf("Couldn't create socket: %s\n",strerror(errno));
-
-  /* Now run the program */
-  switch (child_pid=fork()) {
-    case -1:
-      /* Error */
-      errorf("Error in fork(): %s\n",strerror(errno));
-    case 0:
-      /* Child */
-      if (close(sock[0]) != 0) {
-	errorf("Error in close(sock[0]): %s\n",strerror(errno));
-      }
-
-      if (close(STDIN_FILENO) != 0) {
-	errorf("Error in close(STDIN_FILENO): %s\n",strerror(errno));
-      }
-      if (dup2(sock[1],STDIN_FILENO) != STDIN_FILENO) {
-	errorf("Error in dup2(sock[1],STDIN_FILENO): %s\n",strerror(errno));
-      }
-
-      if (close(STDOUT_FILENO) != 0) {
-	errorf("Error in close(STDOUT_FILENO): %s\n",strerror(errno));
-      }
-      if (dup2(sock[1],STDOUT_FILENO) != STDOUT_FILENO) {
-	errorf("Error in dup2(sock[1],STDOUT_FILENO): %s\n",strerror(errno));
-      }
-      
-      if (close(sock[1]) != 0) {
-	errorf("Error in close(sock[1]): %s\n",strerror(errno));
-      }
-
-      execl("/bin/sh","sh","-c",backend,NULL);
-      /* Only returns if there is an error. */
-      errorf("exec error: %s\n",strerror(errno));
-  }
-  /* Parent */
-  return f[0]=f[1]=sock[0];
-}
-
 /* This can also do front fds */
 int setup_back_fds(char *backend, int f[2])
 {
@@ -467,8 +423,6 @@ int setup_back_fds(char *backend, int f[2])
 int setup_backend(int f[2])
 {
   switch(backend[0]) {
-    case '!':
-      return setup_back_program(backend+1,f);
     case '=':
       return setup_back_fds(backend+1,f);
     default:
