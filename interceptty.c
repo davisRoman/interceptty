@@ -58,7 +58,6 @@ int fdmax = 0;
 char    *backend = NULL,
   *frontend = DEFAULT_FRONTEND,
   *settings = NULL,
-  *outfilename = NULL,
   timestamp = 0,
   use_eol_ch = 0,
   print_hex = 1,
@@ -699,90 +698,16 @@ int main (int argc, char *argv[])
 {
   fd_set readset;
   int n, sel;
-  int c, errflg=0;
+  int c;
   int backfd[2], frontfd[2];
   struct sigaction sigact;
   sigset_t sigmask;
-  char *scratch, *next_scratch;
+  char *scratch;
 
   /* Set default options */
   outfile = stdout;
 
-  /* Process options */
-  while ((c = getopt(argc, argv, "VTlqvs:o:p:t:m:u:g:/:e:f:")) != EOF)
-    switch (c) {
-      case 'm':
-	/* mode for pty: [user,[group,]]mode */
-	scratch = strdup(optarg);
-	if ((next_scratch = strchr(scratch,',')) != NULL) {
-	  /* Username */
-	  *next_scratch = '\0';
-	  next_scratch++;
-
-	  frontend_owner = find_uid(scratch);
-
-	  scratch = next_scratch;
-
-	  if ((next_scratch = strchr(scratch,',')) != NULL)
-	  {
-	    /* Group */
-	    *next_scratch = '\0';
-	    next_scratch++;
-	    
-	    frontend_group = find_gid(scratch);
-
-	    scratch = next_scratch;
-	  }
-	}
-	frontend_mode = strtol(scratch,NULL,8);
-	break;
-      case 's':
-        settings = optarg;
-        break;
-      case 'o':
-        outfilename=optarg;
-        if ( (outfile = fopen(outfilename,"w")) == NULL)
-          errorf("Couldn't open output file '%s' for write: %s\n",outfilename,strerror(errno));
-        break;
-      case 'e':
-        scratch = optarg;
-        use_eol_ch = 1;
-
-        n = (int)strnlen(optarg, 10);
-        sel = strtol(optarg, &scratch, 0);
-        if (scratch == optarg + n && n > 0)
-        {
-          /* its a number */
-          if (sel > 0xff || sel < 0)
-            errorf("EOL numbers must be 0-255\n");
-          eol_ch = (char)sel;
-        }
-        else if (n != 1)
-          errorf("End of line char must be 1 char or a number\n");
-
-        fprintf(stdout, "# Using '%s' as end of line char\n", char_repr(eol_ch));
-        break;
-      case 'f':
-        if (strncmp("char", optarg, 10) == 0)
-          print_hex = 0;
-        else if(strncmp("hex", optarg, 10) == 0)
-          print_chrs = 0;
-        else
-          errorf("Must give either 'hex' or 'char' to -f switch\n");
-        break;
-      case 'V':
-	puts(VERSION);
-	exit(0);
-      case 'T':
-        timestamp = 1;
-        break;
-      case '?':
-      default:
-        errflg++;
-        break;
-    }
-
-  if (errflg || ((argc-optind) < 1) || ((argc-optind) > 2)) {
+  if (((argc-optind) < 1) || ((argc-optind) > 2)) {
     exit (2);
   }
 
