@@ -59,7 +59,6 @@ char    *backend = NULL,
   *frontend = DEFAULT_FRONTEND,
   *settings = NULL,
   *outfilename = NULL,
-  *opt_ptyname = NULL,
   *opt_ttyname = NULL;
   timestamp = 0,
   use_eol_ch = 0,
@@ -108,39 +107,9 @@ int create_pty (int *ptyfd, char *ttynam)
 {
   char name[TTYLEN+1];
 
-  if (opt_ptyname)
-  { 
-    if (strlen(opt_ptyname) > TTYLEN)
-      errorf("Specified pty name is too long!");
-                
-    strcpy(name, opt_ptyname);
-    if (opt_ttyname)
-    {
-      if (strlen(opt_ttyname) > TTYLEN)
-        errorf("Specified tty name is too long!");
-      strcpy(ttynam, opt_ttyname);
-    }
-    else if (strncmp(name,"/dev/pty",8) == 0)
-    {
-      /* Hacky, or heuristic? */
-      strcpy(ttynam, name);
-      ttynam[5] = 't';
-    }
-    else if (frontend)
-    {
-      errorf("A pty was specified with -p, but I couldn't figure out a tty to go with it.\nEither give me a tty with the -t switch, \nor else tell me not to create a front-end device by passing '-' as the front-device.");
-    }
-    else
-    {
-      ttynam[0]='\0';
-    }
-    *ptyfd = open(opt_ptyname,O_RDWR|O_NOCTTY);
-  }
-  else
-  {
     *ptyfd = find_ptyxx(name);
     strcpy(ttynam, name);
-  }
+
   if (*ptyfd < 0)
     errorf("can't open pty '%s'\n",name);
 
@@ -746,9 +715,6 @@ int main (int argc, char *argv[])
   /* Process options */
   while ((c = getopt(argc, argv, "VTlqvs:o:p:t:m:u:g:/:e:f:")) != EOF)
     switch (c) {
-      case 'p':
-        opt_ptyname = optarg;
-        break;
       case 't':
         opt_ttyname = optarg;
         break;
