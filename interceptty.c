@@ -61,7 +61,6 @@ char    *backend = NULL,
   *outfilename = NULL,
   *opt_ptyname = NULL,
   *opt_ttyname = NULL;
-int     verbose = 0,
   linebuff = 0,
   timestamp = 0,
   use_eol_ch = 0,
@@ -160,12 +159,8 @@ void closedown (void)
     unlink(frontend);
   if (child_pid) 
   {
-    if (verbose)
-      fprintf(stderr,"Sending signal %d to child pid %ld\n",SIGTERM,(long)child_pid);
     kill(child_pid,SIGTERM);
   }
-  if (verbose)
-    fprintf(stderr,"closing down everything\n");
 }
 
 /* signal handlers */
@@ -596,8 +591,6 @@ void fix_perms_after_exit(char *ttynam, struct stat st)
   sigaction(SIGHUP,&sigact,NULL);
   sigaction(SIGINT,&sigact,NULL);
 
-  if (verbose)
-    fprintf(stderr,"PID %d monitoring child process\n",getpid());
 
   /* Wait for everything else to finish */
   wait(&exit_status);
@@ -607,8 +600,6 @@ void fix_perms_after_exit(char *ttynam, struct stat st)
   if (chmod(ttynam, st.st_mode & 07777) < 0)
     errorf("Couldn't set permissions on tty '%s': %s\n",strerror(errno));
 
-  if (verbose)
-    fprintf(stderr,"PID %d saw child process exit\n",getpid());
   /* Now exit the same way the child did */
   if (WIFEXITED(exit_status))
     exit(WEXITSTATUS(exit_status));
@@ -756,9 +747,6 @@ int main (int argc, char *argv[])
   /* Process options */
   while ((c = getopt(argc, argv, "VTlqvs:o:p:t:m:u:g:/:e:f:")) != EOF)
     switch (c) {
-      case 'v':
-        verbose = 1;
-        break;
       case 'l':
         linebuff = 1;
         break;
