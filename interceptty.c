@@ -61,7 +61,6 @@ char    *backend = NULL,
   *outfilename = NULL,
   *opt_ptyname = NULL,
   *opt_ttyname = NULL;
-  linebuff = 0,
   timestamp = 0,
   use_eol_ch = 0,
   print_hex = 1,
@@ -747,9 +746,6 @@ int main (int argc, char *argv[])
   /* Process options */
   while ((c = getopt(argc, argv, "VTlqvs:o:p:t:m:u:g:/:e:f:")) != EOF)
     switch (c) {
-      case 'l':
-        linebuff = 1;
-        break;
       case 'p':
         opt_ptyname = optarg;
         break;
@@ -847,8 +843,6 @@ int main (int argc, char *argv[])
         
   if (strcmp(frontend,"-") == 0)
     frontend = NULL;
-  if (linebuff)
-    setlinebuf(outfile);
 
   atexit (closedown);
   /* Do some initialization */
