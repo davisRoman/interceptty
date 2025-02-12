@@ -58,18 +58,9 @@ char    *backend = NULL,
   use_eol_ch = 0,
   print_hex = 1,
   print_chrs = 1;
-char    eol_ch = 0;
 int     created_link = 0;
-char    last_pty[TTYLEN] = "",
-  last_tty[TTYLEN] = "";
 pid_t child_pid = 0;
 int listenfd = 0;
-
-mode_t frontend_mode = -1;
-uid_t frontend_owner = -1;
-gid_t frontend_group = -1;
-
-int no_closedown = 0;
 
 FILE *outfile;
 
@@ -105,21 +96,6 @@ int create_pty (int *ptyfd, char *ttynam)
 
   return 1;
 }		
-
-/* do a graceful closedown */
-
-void closedown (void)
-{	
-  if (no_closedown)
-    return;
-  stty_orig ();
-  if (created_link)
-    unlink(frontend);
-  if (child_pid) 
-  {
-    kill(child_pid,SIGTERM);
-  }
-}
 
 /* main program */
 
@@ -239,10 +215,6 @@ int main (int argc, char *argv[])
   /* Set default options */
   outfile = stdout;
 
-  if (((argc-optind) < 1) || ((argc-optind) > 2)) {
-    exit (2);
-  }
-
   /* Process the two non-flag options */
   backend = argv[optind];
   if ((argc-optind) == 2)
@@ -280,8 +252,6 @@ int main (int argc, char *argv[])
       sel = select(fdmax + 1, &readset, NULL, NULL, NULL);
     }
     while (sel == -1 && errno == EINTR);
-    if (sel == -1 && errno != EINTR)
-      errorf ("select failed. errno = %d\n", errno);
 
     if (FD_ISSET(backfd[0], &readset))
     {
