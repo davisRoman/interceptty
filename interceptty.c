@@ -53,7 +53,6 @@ int fdmax = 0;
 
 char    *backend = NULL,
   *frontend = DEFAULT_FRONTEND,
-  *settings = NULL,
   timestamp = 0,
   use_eol_ch = 0,
   print_hex = 1,
@@ -100,43 +99,6 @@ int create_pty (int *ptyfd, char *ttynam)
 /* main program */
 
 /* Run stty on the given file descriptor with the given arguments */
-int fstty(int fd, char *stty_args)
-{
-  int child_status;
-  int pid;
-  char *stty_cmd;
-        
-  stty_cmd = malloc(strlen(stty_args)+1+strlen("stty "));
-  if (!stty_cmd)
-    errorf("Couldn't malloc for stty_cmd: %s\n",strerror(errno));
-  strcpy(stty_cmd,"stty ");
-  strcat(stty_cmd,stty_args);
-                
-  if ((pid=fork()) == 0)
-  {
-    /* Child */
-    if (dup2(fd,STDIN_FILENO) < 0)
-      errorf("Couldn't dup2(%d,STDIN_FILENO=%d): %s\n",fd,STDIN_FILENO,strerror(errno));
-    if (execlp("sh","sh","-c",stty_cmd,NULL) < 0)
-      errorf("Couldn't exec stty command: %s\n",strerror(errno));
-    /* Should never reach here. */
-    exit(-1);
-  }
-  else if (pid == -1)
-  {
-    errorf("Couldn't fork: %s\n",strerror(errno));
-  }
-                
-  free(stty_cmd);
-  /* Parent */
-  if (wait(&child_status) <= 0)
-    errorf("Error waiting for forked stty process: '%s'\n",strerror(errno));
-  if (!(WIFEXITED(child_status) && WEXITSTATUS(child_status) == 0) )
-    errorf("stty %s failed\n",stty_args);
-
-  return 0;
-}
-        
 int setup_back_tty(char *backend, int f[2])
 {
   int serialfd;
@@ -148,11 +110,6 @@ int setup_back_tty(char *backend, int f[2])
   if (stty_raw(serialfd) != 0)
     errorf("Error putting serial device '%s' in raw mode: %s\n",backend,strerror(errno));
   
-  /* Process settings from the -s switch */
-  if (settings) {
-    fstty(serialfd,settings);
-  }
-
   return f[0]=f[1]=serialfd;
 }
 
