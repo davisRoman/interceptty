@@ -223,7 +223,6 @@ int main (int argc, char *argv[])
   if (strcmp(frontend,"-") == 0)
     frontend = NULL;
 
-  atexit (closedown);
   /* Do some initialization */
   stty_initstore();
 
