@@ -401,30 +401,9 @@ int setup_back_tty(char *backend, int f[2])
 }
 
 /* This can also do front fds */
-int setup_back_fds(char *backend, int f[2])
-{
-  char *fd1_s,*fd2_s;
-
-  if (!(fd1_s = strdup(backend)))
-    errorf("Couldn't dup string: %s\n",strerror(errno));
-
-  if ((fd2_s = strchr(fd1_s,',')) != 0) {
-    *fd2_s='\0';
-    fd2_s++;
-  }
-  else {
-    fd2_s = fd1_s;
-  }
-  f[1]=atoi(fd2_s);
-  return f[0]=atoi(fd1_s);
-}
-
-
 int setup_backend(int f[2])
 {
   switch(backend[0]) {
-    case '=':
-      return setup_back_fds(backend+1,f);
     default:
       return setup_back_tty(backend,f);
   }
@@ -482,13 +461,6 @@ int setup_front_tty(char *frontend, int f[2])
 
 int setup_frontend(int f[2])
 {
-  if (frontend)
-    switch (frontend[0])
-    {
-      case '=':
-        return setup_back_fds(frontend+1,f);
-    }
-
   return setup_front_tty(frontend,f);
 }
 
