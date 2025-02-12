@@ -42,9 +42,6 @@
 
 #define DEFAULT_FRONTEND "/tmp/interceptty"
 
-struct sockaddr_in inet_resolve(const char *sockname);
-
-
 #define BUFF_SIZE	256
 
 char buff[BUFF_SIZE];
@@ -178,51 +175,6 @@ int fstty(int fd, char *stty_args)
   return 0;
 }
         
-
-        
-struct sockaddr_in inet_resolve(const char *sockname)
-{
-  struct sockaddr_in sa;
-  char *hostname, *netport;
-  struct hostent *he;
-  
-  if (strchr(sockname,':') == NULL)
-    errorf("Internet hostname must be @host:port\n");
-
-  if (!(hostname = strdup(sockname)))
-    errorf("Couldn't dup string: %s\n",strerror(errno));
-
-  netport = strchr(hostname,':');
-  *netport='\0';
-  netport++;
-  
-  sa.sin_family=AF_INET;
-  
-  if (!(he = gethostbyname(hostname)))
-    errorf("Couldn't resolve name '%s': %s.\n",hostname,
-	   (h_errno == HOST_NOT_FOUND) ? "Host not found" :
-	   ((h_errno == NO_ADDRESS)||(h_errno == NO_DATA)) ? "No data available" :
-	   (h_errno == NO_RECOVERY) ? "A non-recoverable name server error occured" :
-	   (h_errno == TRY_AGAIN) ? "A temporary error occured." :
-	   "An unknown error occured");
-
-  memcpy(&(sa.sin_addr),he->h_addr,he->h_length);
-      
-#if 0
-  if (!(se = getservbyname(netport)))
-    errorf("Couldn't resolve port.\n");
-
-  host_port=htons(se->s_port);
-#endif
-      
-  if (!(sa.sin_port = htons(atoi(netport))))
-    errorf("Couldn't figure out port number.\n");
-
-  free(hostname);
-  
-  return sa;
-}
-
 int setup_back_tty(char *backend, int f[2])
 {
   int serialfd;
