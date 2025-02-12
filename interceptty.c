@@ -503,58 +503,6 @@ int setup_backend(int f[2])
   }
 }
 
-
-/* Continue in a child process, and wait for that process to exit.
- * When it does, fix permissions.
- * This is robust in the face of crashes, and will let us change
- * perms back even if we've dropped privs.
- */
-void fix_perms_after_exit(char *ttynam, struct stat st)
-{
-  int exit_status;
-  sigset_t sigmask;
-  struct sigaction sigact;
-
-  switch(fork())
-  {
-    case -1: /* error */ 
-      errorf("Couldn't fork: %s\n",strerror(errno));
-      break;
-    case 0: /* child */
-      return;
-  }
-
-  /* We've already registered the closedown function, but only want to
-   * call it from the child. 
-  */
-  no_closedown = 1;
-
-  /* Ignore these signals; the child will catch them and terminate. */
-  sigemptyset(&sigmask);
-  memset(&sigact,0,sizeof sigact);
-  sigact.sa_handler = SIG_IGN;
-  sigact.sa_mask = sigmask;
-  sigaction(SIGHUP,&sigact,NULL);
-  sigaction(SIGINT,&sigact,NULL);
-
-
-  /* Wait for everything else to finish */
-  wait(&exit_status);
- 
-  if (chown(ttynam, st.st_uid, st.st_gid) < 0)
-    errorf("Couldn't chown backend device to uid=%d, gid=%d: %s\n",st.st_uid,st.st_gid,strerror(errno));
-  if (chmod(ttynam, st.st_mode & 07777) < 0)
-    errorf("Couldn't set permissions on tty '%s': %s\n",strerror(errno));
-
-  /* Now exit the same way the child did */
-  if (WIFEXITED(exit_status))
-    exit(WEXITSTATUS(exit_status));
-  else if (WIFSIGNALED(exit_status))
-    kill(getpid(),WTERMSIG(exit_status));
-  else
-    exit(99); /* Should never happen */
-}
-
 /*************************************
  * Set up pty
  ************************************/
@@ -581,8 +529,6 @@ int setup_front_tty(char *frontend, int f[2])
       /* Set up permissions on the pty slave */
       if (stat(ttynam, &st) < 0)
 	errorf("Couldn't stat tty '%s': %s\n",ttynam,strerror(errno));
-
-      fix_perms_after_exit(ttynam,st); /* This will create a monitor process */
 
       if (chown(ttynam, frontend_owner, frontend_group) < 0)
 	errorf("Couldn't chown backend device to uid=%d, gid=%d: %s\n",st.st_uid,st.st_gid,strerror(errno));
