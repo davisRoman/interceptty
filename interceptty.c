@@ -122,19 +122,6 @@ void closedown (void)
   }
 }
 
-/* signal handlers */
-
-void sigdeath(int sig)
-{
-  please_die_now=1;
-}
-
-void sigchld(int sig)
-{
-  child_pid = 0;
-  sigdeath(sig);
-}
-
 /* main program */
 
 /* Run stty on the given file descriptor with the given arguments */
@@ -248,7 +235,6 @@ int main (int argc, char *argv[])
   int c;
   int backfd[2], frontfd[2];
   struct sigaction sigact;
-  sigset_t sigmask;
   char *scratch;
 
   /* Set default options */
@@ -281,22 +267,8 @@ int main (int argc, char *argv[])
   /* calc (initial) max file descriptor to use in select() */
   fdmax = max(backfd[0], frontfd[0]);
 
-  /* Set up signal handlers and such */
-  sigemptyset(&sigmask);
-  memset(&sigact,0,sizeof sigact);
-  sigact.sa_handler = sigdeath;
-  sigact.sa_mask = sigmask;
-
   printf("testing...\n");
 
-  sigaction(SIGHUP,&sigact,NULL);
-  sigaction(SIGINT,&sigact,NULL);
-  sigaction(SIGQUIT,&sigact,NULL);
-  sigaction(SIGPIPE,&sigact,NULL);
-  sigaction(SIGTERM,&sigact,NULL);
-
-  sigact.sa_handler = sigchld;
-  sigaction(SIGCHLD,&sigact,NULL);
 
   while (!please_die_now)
   {
