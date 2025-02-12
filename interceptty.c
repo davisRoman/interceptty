@@ -59,7 +59,6 @@ char    *backend = NULL,
   print_chrs = 1;
 int     created_link = 0;
 pid_t child_pid = 0;
-int listenfd = 0;
 
 FILE *outfile;
 
@@ -231,14 +230,6 @@ int main (int argc, char *argv[])
     {
       if ((n = read(frontfd[0], buff, BUFF_SIZE)) == 0)
       {
-        if (listenfd)
-        {
-          if (close(frontfd[0]) < 0)
-            errorf("Couldn't close old frontfd: %s\n",strerror(errno));
-          if ((frontfd[0]=frontfd[1]=accept(listenfd,NULL,NULL)) < 0)
-            errorf("Couldn't accept new socket connection: %s\n",strerror(errno));
-        }
-          
       }
       else
       {
