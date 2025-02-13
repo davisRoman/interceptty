@@ -60,38 +60,6 @@ void stty_initstore (void)
     sttyfds[i] = -1;
 }
 
-/* set tty on fd into raw mode */
-
-int stty_raw (int fd)
-{
-  struct termios tty_state;
-  int i;
-	
-  if (tcgetattr(fd, &tty_state) < 0)
-    return (-1);
-	
-  for (i = 0; i < TTY_STORE; i++)
-    if (sttyfds[i] == -1)
-    {
-      orig_tty_state[i] = tty_state;
-      sttyfds[i] = fd;
-      break;
-    }
-	
-  tty_state.c_lflag &= ~(ICANON | IEXTEN | ISIG | ECHO);
-  tty_state.c_iflag &= ~(ICRNL | INPCK | ISTRIP | IXON | BRKINT);
-  tty_state.c_oflag &= ~OPOST;
-  tty_state.c_cflag |= CS8;
-	
-  tty_state.c_cc[VMIN]  = 1;
-  tty_state.c_cc[VTIME] = 0;
-	
-  if (tcsetattr(fd, TCSAFLUSH, &tty_state) < 0)
-    return (-1);
-	
-  return (0);
-}
-
 /* restore all altered ttys to their original state */
 
 void stty_orig (void)

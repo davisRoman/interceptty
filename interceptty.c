@@ -71,13 +71,6 @@ int find_ptyxx (char *ptyname)
   if (my_openpty(&fd,&ttyfd,ptyname) < 0)
     errorf("Couldn't openpty: %s\n",strerror(errno));
 
-  if (stty_raw(ttyfd) != 0)
-    errorf("Couldn't put pty into raw mode: %s\n",strerror(errno));
-  /* Throw away the ttyfd.  We'll keep it open because it prevents
-   * errors when the client disconnects, but we don't ever plan to
-   * read or write any data, so we needn't remember it.
-   */
-
   return fd;
 }
 
@@ -106,8 +99,6 @@ int setup_back_tty(char *backend, int f[2])
   serialfd = open(backend, O_RDWR | O_NOCTTY | O_SYNC | O_NOCTTY);
   if (serialfd < 0)
     errorf("error opening backend device '%s': %s\n",backend,strerror(errno));
-  if (stty_raw(serialfd) != 0)
-    errorf("Error putting serial device '%s' in raw mode: %s\n",backend,strerror(errno));
   
   return f[0]=f[1]=serialfd;
 }
